@@ -1,20 +1,19 @@
 const express = require("express");
 const app = express();
 const PORT = 8080; // default port 8080
+const bodyParser = require("body-parser");
+app.use(bodyParser.urlencoded({extended: true}));
 
 app.set("view engine", "ejs");
+
+function generateRandomString() {
+  return Math.random().toString(36).substring(2,8);
+}
 
 const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
   "9sm5xK": "http://www.google.com"
 };
-
-const bodyParser = require("body-parser");
-app.use(bodyParser.urlencoded({extended: true}));
-
-function generateRandomString() {
-  newShortURL = Math.random().toString(36).substring(2,8);
-}
 
 app.get("/", (req, res) => {
   res.send("Hello!");
@@ -26,8 +25,10 @@ app.get("/urls", (req, res) => {
 });
 
 app.post("/urls", (req, res) => {
-  console.log(req.body);  // Log the POST request body to the console
-  res.send("Ok");         // Respond with 'Ok' (we will replace this)
+  console.log(req.body); 
+  const idShortURL = generateRandomString();
+  urlDatabase[idShortURL] = req.body['longURL'];
+  console.log(urlDatabase);
 });
 
 app.get("/urls/new", (req, res) => {
