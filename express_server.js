@@ -24,11 +24,16 @@ app.get("/urls", (req, res) => {
   res.render("urls_index", templateVars);
 });
 
-app.post("/urls", (req, res) => {
-  console.log(req.body); 
+app.post("/urls", (req, res) => { 
   const idShortURL = generateRandomString();
   urlDatabase[idShortURL] = req.body['longURL'];
-  console.log(urlDatabase);
+  res.redirect(`/urls/${idShortURL}`);
+});
+
+app.get("/u/:shortURL", (req, res) => {
+  //console.log(req.params);
+  const longURL = urlDatabase[req.params.shortURL];
+  res.redirect(longURL);
 });
 
 app.get("/urls/new", (req, res) => {
