@@ -36,14 +36,17 @@ app.get("/u/:shortURL", (req, res) => {
   res.redirect(longURL);
 });
 
+app.post("/urls/:shortURL", (req, res) => {
+  const newURL = req.body.newURL;
+  console.log(newURL)
+  urlDatabase[req.params.shortURL] = newURL;
+  res.redirect('/urls');
+});
+
 app.post("/urls/:shortURL/delete", (req,res) => {
   delete urlDatabase[req.params.shortURL];
   res.redirect('/urls');
 })
-
-app.post("/u/:shortURL/edit", (req, res) => {
-  res.redirect('/u/:shortURL');
-});
 
 app.get("/urls/new", (req, res) => {
   res.render("urls_new");
