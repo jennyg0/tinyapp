@@ -41,6 +41,10 @@ app.post("/urls/:shortURL/delete", (req,res) => {
   res.redirect('/urls');
 })
 
+app.post("/u/:shortURL/edit", (req, res) => {
+  res.redirect('/u/:shortURL');
+});
+
 app.get("/urls/new", (req, res) => {
   res.render("urls_new");
 });
