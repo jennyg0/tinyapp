@@ -5,6 +5,7 @@ const {checkEmailExists } = require('./helpers')
 const bodyParser = require("body-parser");
 app.use(bodyParser.urlencoded({extended: true}));
 var cookieParser = require('cookie-parser');
+const urlencoded = require("body-parser/lib/types/urlencoded");
 app.use(cookieParser())
 
 app.set("view engine", "ejs");
@@ -106,9 +107,13 @@ app.post("/login", (req, res) => {
   } else { 
     //email exists in users, find user_id and login
     const user = checkEmailExists(users, email);
-    res.cookie('user_id', user);
-    //console.log(users);
-    res.redirect('/urls');
+    if (users[user].password === password) {
+      res.cookie('user_id', user);
+      res.redirect('/urls');
+    } else {
+      console.log('password does not match email')
+      res.send('403');
+    }  
   }
 });
 
