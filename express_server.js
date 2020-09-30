@@ -12,6 +12,19 @@ function generateRandomString() {
   return Math.random().toString(36).substring(2,8);
 }
 
+const users = { 
+  "userRandomID": {
+    id: "userRandomID", 
+    email: "user@example.com", 
+    password: "purple-monkey-dinosaur"
+  },
+ "user2RandomID": {
+    id: "user2RandomID", 
+    email: "user2@example.com", 
+    password: "dishwasher-funk"
+  }
+}
+
 const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
   "9sm5xK": "http://www.google.com"
@@ -82,6 +95,15 @@ app.post("/login", (req, res) => {
 app.post("/logout", (req, res) => {
   const username = req.body.username;
   res.clearCookie('username', username);
+  res.redirect('/urls');
+});
+
+app.post("/register", (req, res) => {
+  const id = generateRandomString();
+  const {email, password} = req.body;
+  users[id] = {id, email, password};
+  res.cookie('username', id);
+  //console.log(users);
   res.redirect('/urls');
 });
 
