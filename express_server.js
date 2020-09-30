@@ -88,10 +88,28 @@ app.get("/register", (req, res) => {
   res.render("urls_register", templateVars);
 });
 
+app.get("/login", (req, res) => {
+  const templateVars = { user : users[req.cookies["user_id"]] };
+  res.render("urls_login", templateVars);
+});
+
 app.post("/login", (req, res) => {
-  const user_id = req.body.user_id;
-  res.cookie('user_id', user_id);
-  res.redirect('/urls');
+  const {email, password} = req.body;
+  if (!(email) || !(password)) {
+    console.log('didnt enter email or password')
+    res.send('400');
+  }
+  //if email doesn't exist in users, 400 error
+  if (!checkEmailExists(users, email)) {
+    console.log('email doesnt exist, plz register');
+    res.send('403'); //redirect to register maybe?
+  } else { 
+    //email exists in users, find user_id and login
+    const user = checkEmailExists(users, email);
+    res.cookie('user_id', user);
+    //console.log(users);
+    res.redirect('/urls');
+  }
 });
 
 app.post("/logout", (req, res) => {
