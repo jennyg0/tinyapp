@@ -1,6 +1,7 @@
 const express = require("express");
 const app = express();
 const PORT = 8080; // default port 8080
+const {checkEmailExists } = require('./helpers')
 const bodyParser = require("body-parser");
 app.use(bodyParser.urlencoded({extended: true}));
 var cookieParser = require('cookie-parser');
@@ -100,13 +101,23 @@ app.post("/logout", (req, res) => {
 });
 
 app.post("/register", (req, res) => {
-  const id = generateRandomString();
   const {email, password} = req.body;
-  users[id] = {id, email, password};
-  //const user_id = req.body.user_id;
-  res.cookie('user_id', id);
-  //console.log(users);
-  res.redirect('/urls');
+  if (!(email) || !(password)) {
+    console.log('didnt enter email or password')
+    res.send('400');
+  }
+  //if email already exists in users, 400 error
+  if (checkEmailExists(users, email)) {
+    console.log('email exists');
+    res.send('400');
+  } else { 
+    //email doesnt exist in users, create new user key/value
+    const id = generateRandomString();
+    users[id] = {id, email, password};
+    res.cookie('user_id', id);
+    //console.log(users);
+    res.redirect('/urls');
+  }
 });
 
 app.listen(PORT, () => {
