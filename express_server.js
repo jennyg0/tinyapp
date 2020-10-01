@@ -146,10 +146,10 @@ app.post("/urls/:shortURL/delete", (req,res) => {
 app.post("/login", (req, res) => {
   const {email, password} = req.body;
   if (!(email) || !(password)) {
-    res.send('<h2>400: Did not enter email and/or password\n</h2>');
+    res.send("<h2>400: Did not enter email and/or password.<a href='/login' class='link'>Go Back</a>.\n</h2>");
   } //if email doesn't exist in users, 400 error
   if (!checkEmailExists(users, email)) {
-    res.send('<h2>403: Email does not exist, please register\n</h2>');
+    res.send("<h2>403: Email does not exist, please <a href='/register' class='link'>register</a>.\n</h2>");
   } else {
     //email exists in users, find user_id and login
     const user = checkEmailExists(users, email);
@@ -158,7 +158,7 @@ app.post("/login", (req, res) => {
       req.session['user_id'] = user;
       res.redirect('/urls');
     } else {
-      res.send('<h2>403: Password does not match email, please login again.\n</h2>');
+      res.send("<h2>403: Password does not match email, please <a href='/login' class='link'>login</a> again.\n</h2>");
     }
   }
 });
@@ -173,7 +173,7 @@ app.post("/register", (req, res) => {
   if (!(email) || !(password)) { //if the user leaves the email or password blank
     res.send('<h2>400: Did not enter email and/or password\n</h2>');
   } else if (checkEmailExists(users, email)) { //if email already exists in users, 400 error
-    res.send('<h2>400: Email already exists, please login.\n</h2>');
+    res.send("<h2>400: Email already exists, please <a href='/login' class='link'>login</a>.\n</h2>");
   } else { //email doesnt exist in users, create new user key/value
     const id = generateRandomString();
     const hashedPassword = bcrypt.hashSync(password, 10);
