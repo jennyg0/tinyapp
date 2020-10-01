@@ -5,6 +5,7 @@ const { checkEmailExists, urlsForUser, urlCheck} = require('./helpers')
 const bodyParser = require("body-parser");
 app.use(bodyParser.urlencoded({extended: true}));
 var cookieParser = require('cookie-parser');
+const bcrypt = require('bcrypt');
 const urlencoded = require("body-parser/lib/types/urlencoded");
 app.use(cookieParser())
 
@@ -18,12 +19,12 @@ const users = {
   "userRandomID": {
     id: "userRandomID", 
     email: "user@example.com", 
-    password: "purple-monkey-dinosaur"
+    password: bcrypt.hashSync("purple-monkey-dinosaur",10)
   },
  "user2RandomID": {
     id: "user2RandomID", 
     email: "user2@example.com", 
-    password: "dishwasher-funk"
+    password: bcrypt.hashSync("dishwasher-funk", 10)
   }
 }
 
@@ -129,7 +130,7 @@ app.post("/login", (req, res) => {
   const {email, password} = req.body;
   if (!(email) || !(password)) {
     console.log('didnt enter email or password')
-    res.send('<h2>400: Did not enter email or password\n</h2>');
+    res.send('<h2>400: Did not enter email and/or password\n</h2>');
   }
   //if email doesn't exist in users, 400 error
   if (!checkEmailExists(users, email)) {
@@ -137,7 +138,8 @@ app.post("/login", (req, res) => {
   } else { 
     //email exists in users, find user_id and login
     const user = checkEmailExists(users, email);
-    if (users[user].password === password) {
+    let passwordCheck = bcrypt.compareSync(password, users[user].password);
+    if (passwordCheck) {
       res.cookie('user_id', user);
       res.redirect('/urls');
     } else {
@@ -166,7 +168,8 @@ app.post("/register", (req, res) => {
   } else { 
     //email doesnt exist in users, create new user key/value
     const id = generateRandomString();
-    users[id] = {id, email, password};
+    const hashedPassword = bcrypt.hashSync(password, 10);
+    users[id] = {id, email, password: hashedPassword};
     res.cookie('user_id', id);
     //console.log(users);
     res.redirect('/urls');
