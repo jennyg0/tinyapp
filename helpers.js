@@ -1,12 +1,14 @@
+//check to see if the email already exists in the user database
 const checkEmailExists = (db, email) => {
   for (const user in db) {
     if (db[user].email === email) {
       return db[user].id;
-    } 
+    }
   }
   return null;
 };
 
+//return the urls associated with the given userID
 const urlsForUser = (db, id) => {
   const userUrls = {};
   for (const user in db) {
@@ -18,18 +20,9 @@ const urlsForUser = (db, id) => {
   return userUrls;
 };
 
-const urlCheck = (db, userID, shortURL) => {
-  let urls = urlsForUser(db, userID);
-  for (let id in urls) {
-    if (id === shortURL) {
-      return true
-    }
-  }
-  return false
-}
-
-function generateRandomString() {
+//generate a random string
+const generateRandomString = function() {
   return Math.random().toString(36).substring(2,8);
-}
+};
 
-module.exports = { checkEmailExists , urlsForUser , urlCheck, generateRandomString};
+module.exports = { checkEmailExists , urlsForUser , generateRandomString};
