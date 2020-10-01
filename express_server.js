@@ -1,7 +1,7 @@
 const express = require("express");
 const app = express();
 const PORT = 8080; // default port 8080
-const { checkEmailExists, urlsForUser} = require('./helpers')
+const { checkEmailExists, urlsForUser, urlCheck} = require('./helpers')
 const bodyParser = require("body-parser");
 app.use(bodyParser.urlencoded({extended: true}));
 var cookieParser = require('cookie-parser');
@@ -71,9 +71,14 @@ app.get("/urls/new", (req, res) => {
 });
 
 app.get("/urls/:shortURL", (req, res) => {
-  if (req.cookies["user_id"]) {
-    const templateVars = { user : users[req.cookies["user_id"]], shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL].longURL };
+  let shortUrl = req.params.shortURL;
+  let user = req.cookies["user_id"];
+  if (user && user === urlDatabase[shortUrl].userID) {
+    const templateVars = { user : users[user], shortURL: shortUrl, longURL: urlDatabase[shortUrl].longURL };
     res.render("urls_show", templateVars);
+  } else if (user && user !== urlDatabase[shortUrl].userID) {
+      const templateVars = { user : users[user] };
+      res.render('urls_404', templateVars);
   } else {
     res.redirect('/login');
   }
@@ -100,25 +105,35 @@ app.get("/login", (req, res) => {
 app.post("/urls/:shortURL", (req, res) => {
   const newURL = req.body.newURL;
   const shortURL = req.params.shortURL;
-  const userID = req.cookies["user_id"];
-  urlDatabase[shortURL] = {longURL: newURL, userID};
-  res.redirect('/urls');
+  const user = req.cookies["user_id"];
+  if (user && user === urlDatabase[shortURL].userID) {
+    urlDatabase[shortURL] = {longURL: newURL, userID: user};
+    res.redirect('/urls');
+  } else {
+    res.send('<h2>Error: You don\'t have permission to edit this url!</h2>')
+  }
 });
 
 app.post("/urls/:shortURL/delete", (req,res) => {
-  delete urlDatabase[req.params.shortURL];
-  res.redirect('/urls');
+  let shortUrl = req.params.shortURL;
+  let user = req.cookies["user_id"];
+  if (user && user === urlDatabase[shortUrl].userID) {
+    delete urlDatabase[req.params.shortURL];
+    res.redirect('/urls');
+  } else {
+    res.send('<h2>Error: You don\'t have permission to delete this url!</h2>')
+  }
 });
 
 app.post("/login", (req, res) => {
   const {email, password} = req.body;
   if (!(email) || !(password)) {
     console.log('didnt enter email or password')
-    res.send('400');
+    res.send('<h2>400: Did not enter email or password\n</h2>');
   }
   //if email doesn't exist in users, 400 error
   if (!checkEmailExists(users, email)) {
-    res.send('<h2>Email does not exist, please register\n<h2>'); 
+    res.send('<h2>403: Email does not exist, please register\n</h2>'); 
   } else { 
     //email exists in users, find user_id and login
     const user = checkEmailExists(users, email);
@@ -127,7 +142,7 @@ app.post("/login", (req, res) => {
       res.redirect('/urls');
     } else {
       console.log('password does not match email')
-      res.send('403');
+      res.send('<h2>403: Password does not match email, please login again.\n</h2>');
     }  
   }
 });
@@ -158,12 +173,11 @@ app.post("/register", (req, res) => {
   }
 });
 
-//if user goes to a page that doesn't exist - redirect 
+//if user goes to a page that doesn't exist - show 404 error
 app.get('*', (req, res) => {
   const templateVars = { user : users[req.cookies["user_id"]] };
   res.render('urls_404', templateVars);
 });
-
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);

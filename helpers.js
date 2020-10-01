@@ -18,4 +18,15 @@ const urlsForUser = (db, id) => {
   return userUrls;
 };
 
-module.exports = { checkEmailExists , urlsForUser };
+const urlCheck = (db, userID, shortURL) => {
+  let urls = urlsForUser(db, userID);
+  for (let id in urls) {
+    if (id === shortURL) {
+      return true
+    }
+  }
+  return false
+
+}
+
+module.exports = { checkEmailExists , urlsForUser , urlCheck};
