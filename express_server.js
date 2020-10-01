@@ -1,7 +1,7 @@
 const express = require("express");
 const app = express();
 const PORT = 8080; // default port 8080
-const {checkEmailExists } = require('./helpers')
+const { checkEmailExists, urlsForUser} = require('./helpers')
 const bodyParser = require("body-parser");
 app.use(bodyParser.urlencoded({extended: true}));
 var cookieParser = require('cookie-parser');
@@ -29,7 +29,7 @@ const users = {
 
 const urlDatabase = {
   b6UTxQ: { longURL: "https://www.tsn.ca", userID: "aJ48lW" },
-  i3BoGr: { longURL: "https://www.google.ca", userID: "aJ48lW" }
+  i3BoGr: { longURL: "https://www.google.ca", userID: "user2RandomID" }
 };
 
 app.get("/", (req, res) => {
@@ -38,7 +38,8 @@ app.get("/", (req, res) => {
 
 app.get("/urls", (req, res) => {
   if (req.cookies["user_id"]) {
-    const templateVars = { user : users[req.cookies["user_id"]] , urls: urlDatabase };
+    let userUrlDatabase = urlsForUser(urlDatabase, req.cookies["user_id"]);
+    const templateVars = { user : users[req.cookies["user_id"]] , urls: userUrlDatabase };
     res.render("urls_index", templateVars);
   } else {
     res.redirect('/login');
@@ -55,7 +56,6 @@ app.post("/urls", (req, res) => {
 });
 
 app.get("/u/:shortURL", (req, res) => {
-  //console.log(req.params);
   const longURL = urlDatabase[req.params.shortURL].longURL;
   res.redirect(longURL);
 });
@@ -65,13 +65,18 @@ app.get("/urls/new", (req, res) => {
     const templateVars = { user : users[req.cookies["user_id"]] };
     res.render("urls_new", templateVars);
   } else {
+    
     res.redirect('/login');
   }
 });
 
 app.get("/urls/:shortURL", (req, res) => {
+  if (req.cookies["user_id"]) {
     const templateVars = { user : users[req.cookies["user_id"]], shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL].longURL };
     res.render("urls_show", templateVars);
+  } else {
+    res.redirect('/login');
+  }
 });
 
 app.get("/urls.json", (req, res) => {
@@ -113,8 +118,7 @@ app.post("/login", (req, res) => {
   }
   //if email doesn't exist in users, 400 error
   if (!checkEmailExists(users, email)) {
-    console.log('email doesnt exist, plz register');
-    res.send('403'); //redirect to register maybe?
+    res.send('<h2>Email does not exist, please register\n<h2>'); 
   } else { 
     //email exists in users, find user_id and login
     const user = checkEmailExists(users, email);
@@ -153,6 +157,13 @@ app.post("/register", (req, res) => {
     res.redirect('/urls');
   }
 });
+
+//if user goes to a page that doesn't exist - redirect 
+app.get('*', (req, res) => {
+  const templateVars = { user : users[req.cookies["user_id"]] };
+  res.render('urls_404', templateVars);
+});
+
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);

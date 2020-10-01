@@ -3,9 +3,19 @@ const checkEmailExists = (db, email) => {
     if (db[user].email === email) {
       return db[user].id;
     } 
-    return null;
   }
+  return null;
 };
 
+const urlsForUser = (db, id) => {
+  const userUrls = {};
+  for (const user in db) {
+    let current = db[user];
+    if (current.userID === id) {
+      userUrls[user] = current;
+    }
+  }
+  return userUrls;
+};
 
-module.exports = { checkEmailExists };
+module.exports = { checkEmailExists , urlsForUser };
