@@ -26,7 +26,6 @@ const urlCheck = (db, userID, shortURL) => {
     }
   }
   return false
-
 }
 
 module.exports = { checkEmailExists , urlsForUser , urlCheck};
