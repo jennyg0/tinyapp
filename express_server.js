@@ -63,8 +63,15 @@ app.post("/urls", (req, res) => {
 });
 
 app.get("/u/:shortURL", (req, res) => {
-  const longURL = urlDatabase[req.params.shortURL].longURL;
-  res.redirect(longURL);
+  const user = req.session['user_id'];
+  //display an error if the shortURL doesn't exist
+  if(!urlDatabase[req.params.shortURL]) {
+    const templateVars = { user : users[user] };
+    res.render('urls_404', templateVars);
+  } else { //else the shortURL exists, go to the corresponding longURL 
+    const longURL = urlDatabase[req.params.shortURL].longURL;
+    res.redirect(longURL);
+  }
 });
 
 app.get("/urls/new", (req, res) => {
@@ -72,7 +79,6 @@ app.get("/urls/new", (req, res) => {
     const templateVars = { user : users[req.session['user_id']] };
     res.render("urls_new", templateVars);
   } else {
-    
     res.redirect('/login');
   }
 });
@@ -80,15 +86,18 @@ app.get("/urls/new", (req, res) => {
 app.get("/urls/:shortURL", (req, res) => {
   const shortUrl = req.params.shortURL;
   const user = req.session['user_id'];
-  if (user && user === urlDatabase[shortUrl].userID) {
+  //if there is no user, redirect to the login page
+  if (!user) {
+    res.redirect('/login');
+  //check if the shortURL exists or if the userID of the url matches the user
+  } else if (!urlDatabase[shortUrl] || (user && user !== urlDatabase[shortUrl].userID)) {
+    const templateVars = { user : users[user] };
+    res.render('urls_404', templateVars);
+  //show the page if user and userID of the url match
+  } else if (user && user === urlDatabase[shortUrl].userID) {
     const templateVars = { user : users[user], shortURL: shortUrl, longURL: urlDatabase[shortUrl].longURL };
     res.render("urls_show", templateVars);
-  } else if (user && user !== urlDatabase[shortUrl].userID) {
-      const templateVars = { user : users[user] };
-      res.render('urls_404', templateVars);
-  } else {
-    res.redirect('/login');
-  }
+  } 
 });
 
 app.get("/urls.json", (req, res) => {
@@ -101,11 +110,13 @@ app.get("/hello", (req, res) => {
 
 app.get("/register", (req, res) => {
   const templateVars = { user : users[req.session['user_id']] };
+  //show the register page
   res.render("urls_register", templateVars);
 });
 
 app.get("/login", (req, res) => {
   const templateVars = { user : users[req.session['user_id']] };
+  //show the login page
   res.render("urls_login", templateVars);
 });
 
@@ -164,11 +175,10 @@ app.post("/register", (req, res) => {
   const {email, password} = req.body;
   if (!(email) || !(password)) {
     console.log('didnt enter email or password')
-    res.send('400');
-  } //if email already exists in users, 400 error
-  if (checkEmailExists(users, email)) {
+    res.send('<h2>400: Did not enter email and/or password\n</h2>');
+  } else if (checkEmailExists(users, email)) { //if email already exists in users, 400 error
     console.log('email exists');
-    res.send('400');
+    res.send('<h2>400: Email already exists, please login.\n</h2>');
   } else { //email doesnt exist in users, create new user key/value
     const id = generateRandomString();
     const hashedPassword = bcrypt.hashSync(password, 10);
@@ -180,10 +190,10 @@ app.post("/register", (req, res) => {
 });
 
 //if user goes to a page that doesn't exist - show 404 error
-app.get('*', (req, res) => {
-  const templateVars = { user : users[req.session['user_id']] };
-  res.render('urls_404', templateVars);
-});
+// app.get('*', (req, res) => {
+//   const templateVars = { user : users[req.session['user_id']] };
+//   res.render('urls_404', templateVars);
+// });
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
