@@ -28,4 +28,8 @@ const urlCheck = (db, userID, shortURL) => {
   return false
 }
 
-module.exports = { checkEmailExists , urlsForUser , urlCheck};
+function generateRandomString() {
+  return Math.random().toString(36).substring(2,8);
+}
+
+module.exports = { checkEmailExists , urlsForUser , urlCheck, generateRandomString};
