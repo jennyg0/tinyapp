@@ -2,9 +2,10 @@ const express = require("express");
 const app = express();
 const PORT = 8080; // default port 8080
 const bodyParser = require("body-parser");
-app.use(bodyParser.urlencoded({extended: true}));
 const bcrypt = require('bcrypt');
 const cookieSession = require('cookie-session');
+
+app.use(bodyParser.urlencoded({extended: true}));
 app.use(cookieSession({
   name: 'session',
   keys: ['key1', 'key2'],
@@ -14,7 +15,7 @@ app.set("view engine", "ejs");
 //importing helper functions from file
 const { checkEmailExists, urlsForUser, generateRandomString} = require('./helpers');
 
-//////////////DATABASES////////////////////
+//DATABASES
 
 const users = {
   "userRandomID": {
@@ -34,7 +35,7 @@ const urlDatabase = {
   i3BoGr: { longURL: "https://www.google.ca", userID: "user2RandomID" }
 };
 
-////////////GET///////////////////
+//GET
 
 app.get("/urls.json", (req, res) => {
   res.json(urlDatabase);
@@ -84,7 +85,7 @@ app.get("/urls/:shortURL", (req, res) => {
   const user = req.session['user_id'];
   // redirect to the login page if not logged in
   if (!user) {
-    res.redirect('/login');
+    res.send("<h2>Please <a href='/login' class='link'>Login</a> to view this page.\n</h2>");
   //since logged in, check if the shortURL exists or if the userID of the url matches the user
   } else if (!urlDatabase[shortUrl] || (user && user !== urlDatabase[shortUrl].userID)) {
     const templateVars = { user : users[user] };
@@ -106,7 +107,7 @@ app.get("/login", (req, res) => {
   res.render("urls_login", templateVars);
 });
 
-////////////POST///////////////////
+//POST
 
 app.post("/urls", (req, res) => {
   const idShortURL = generateRandomString();
